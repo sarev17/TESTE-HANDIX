@@ -1,43 +1,229 @@
+# 🚀 Teste Handix
 
-# Teste Handix
-
-Apliação desenvolvida com Laravel + Vue para o teste técnico da empresa Handix.
-
-## 🚀 Como rodar o projeto localmente (Laravel + Sail)
-
-Este projeto utiliza **Docker com Laravel Sail** para padronizar o ambiente de desenvolvimento.
+Aplicação desenvolvida com **Laravel (API REST)** para o teste técnico da empresa Handix.
 
 ---
+# Requisitos
+
+* Laravel 13
+* PHP 8.4 
+* Docker
+* Vue.js
+
+# 🧱 Arquitetura e boas práticas aplicadas
+
+Este projeto foi desenvolvido seguindo princípios modernos de arquitetura e boas práticas:
+
+### ✅ Camadas da aplicação
+
+* **Controller** → camada fina (sem regra de negócio)
+* **Service Layer** → centraliza regras de negócio
+* **FormRequest** → validação desacoplada
+* **Resource (API Resource)** → controle de payload
+* **Exception Handling Global** → padronização de erros
+* **Logging estruturado** → observabilidade
+
+---
+
+# 📌 Principais funcionalidades implementadas
+
+## 🔹 API RESTful
+
+CRUD completo de contatos:
+
+| Método    | Endpoint              |
+| --------- | --------------------- |
+| GET       | /api/v1/contacts      |
+| POST      | /api/v1/contacts      |
+| GET       | /api/v1/contacts/{id} |
+| PUT/PATCH | /api/v1/contacts/{id} |
+| DELETE    | /api/v1/contacts/{id} |
+
+---
+
+## 🔹 Service Layer (Camada de Serviço)
+
+Toda regra de negócio foi isolada em serviços:
+
+* Criação
+* Atualização
+* Busca
+* Exclusão
+* Filtros
+
+✔️ Facilita testes
+✔️ Evita lógica no controller
+✔️ Código escalável
+
+---
+
+## 🔹 FormRequest + Validação
+
+Validação desacoplada usando **BaseFormRequest**:
+
+* Regras dinâmicas por método (POST vs PUT/PATCH)
+* Validação parcial com `sometimes`
+* Mensagens personalizadas em português
+
+Exemplo:
+
+```
+PUT /api/v1/contacts/1
+{
+  "notes": "Atualizado"
+}
+```
+
+✔️ Suporta atualização parcial
+✔️ Retorna erros padronizados
+
+---
+
+## 🔹 Padronização de respostas
+
+Todas as respostas seguem o padrão:
+
+### ✅ Sucesso
+
+```
+{
+  "success": true,
+  "message": "Mensagem",
+  "data": {}
+}
+```
+
+### ❌ Erro
+
+```
+{
+  "success": false,
+  "message": "Erro de validação",
+  "errors": {}
+}
+```
+
+---
+
+## 🔹 API Resource (Controle de payload)
+
+Uso de **ContactResource** para evitar overfetching:
+
+✔️ Remove campos desnecessários
+✔️ Não expõe timestamps
+✔️ Controla exatamente o retorno
+
+---
+
+## 🔹 Paginação
+
+A listagem de contatos retorna:
+
+* current_page
+* per_page
+* total
+* last_page
+* data
+
+✔️ Ideal para frontend
+
+---
+
+## 🔹 Tratamento global de exceções
+
+Centralizado em:
+
+```
+bootstrap/app.php
+```
+
+* `ServiceException` → erros de negócio
+* `Throwable` → fallback global
+
+✔️ Evita try/catch nos controllers
+✔️ Mantém padrão consistente
+
+---
+
+## 🔹 Logging estruturado
+
+Logs implementados no Service:
+
+* `error()` → falhas críticas
+* `warning()` → registros não encontrados
+
+Exemplo:
+
+```
+Log::error('Erro ao criar contato', [
+  'data' => $data,
+  'service' => ContactService::class
+]);
+```
+
+✔️ Facilita debug
+✔️ Pronto para produção
+
+---
+
+## 🔹 Versionamento de API
+
+```
+/api/v1/contacts
+```
+
+✔️ Permite evolução futura
+
+---
+
+## 🔹 Documentação automática
+
+Gerada com:
+
+* Scribe
+
+Disponível em:
+
+```
+http://localhost/docs
+```
+
+✔️ Teste de endpoints direto no browser
+
+---
+
+# ⚙️ Como rodar o projeto localmente
 
 ## 📋 Pré-requisitos
 
-Antes de iniciar, você precisa ter instalado:
+* Docker Desktop
+* WSL2 (Windows)
+* Ubuntu (via WSL)
 
-- Docker Desktop
-- WSL2 (Windows)
-- Ubuntu (via WSL)
-
-> ⚠️ Importante: Utilize o terminal do Ubuntu (WSL).  
-> O Sail **não funciona** em Git Bash, CMD ou PowerShell.
+⚠️ Utilize o terminal do Ubuntu (WSL)
 
 ---
 
-## ⚙️ Configuração inicial
+## 🚀 Setup
 
-### 1. Acessar o projeto
-
-No terminal do Ubuntu (WSL):
+### 1. Acessar projeto
 
 ```
 cd /mnt/c/laragon/www/teste-handix
 ```
 
-### 2. Copiar arquivos de ambiente
+---
+
+### 2. Configurar ambiente
+
 ```
 cp .env.example .env
-``` 
+```
 
-### 3. Ajustar variáveis do banco
+---
+
+### 3. Configurar banco
+
 ```
 DB_CONNECTION=mysql
 DB_HOST=mysql
@@ -45,92 +231,125 @@ DB_PORT=3307
 DB_DATABASE=laravel
 DB_USERNAME=sail
 DB_PASSWORD=password
-``` 
+```
 
-### 4. Subir os containers
+---
+
+### 4. Subir containers
+
 ```
 ./vendor/bin/sail up -d
 ```
 
-### 5. Gerar chave da aplicação
+---
+
+### 5. Gerar chave
+
 ```
 ./vendor/bin/sail artisan key:generate
 ```
 
+---
+
 ### 6. Rodar migrations
+
 ```
 ./vendor/bin/sail artisan migrate
 ```
 
-### 7. Acessar aplicação
+---
+
+### 7. Acessar
+
 ```
 http://localhost
 ```
 
-⚠️ Se não abrir
+---
 
-Pode haver conflito de porta (ex: Laragon).
+## ⚠️ Porta alternativa
 
-Edite o .env:
+Se houver conflito:
 
 ```
 APP_PORT=8080
 ```
 
-Depois reinicie:
+Depois:
 
 ```
 ./vendor/bin/sail down
 ./vendor/bin/sail up -d
 ```
 
-Acesse:
-```
-http://localhost:8080
-```
+---
 
-## 📦 Comandos úteis
+# 📦 Comandos úteis
 
-Subir ambiente
+Subir:
+
 ```
 ./vendor/bin/sail up -d
 ```
-Parar ambiente
+
+Parar:
+
 ```
 ./vendor/bin/sail down
 ```
-Ver containers
+
+Ver containers:
+
 ```
 ./vendor/bin/sail ps
 ```
-Rodar comandos Artisan
+
+Rodar comandos:
+
 ```
 ./vendor/bin/sail artisan <comando>
 ```
 
-## 🧠 Observações importantes
+---
+
+# 🧠 Observações
+
 ### Docker + WSL
 
-No Docker Desktop, habilite:
+Ativar em:
 
-Settings → Resources → WSL Integration
+```
+Docker Desktop → Settings → Resources → WSL Integration
+```
 
-Ative a distribuição Ubuntu.
+---
 
-### Conflito de portas
-MySQL local costuma usar 3306
-Este projeto usa 3307
+### Banco de dados
 
-### ⚡ Dica (opcional)
+* MySQL local: 3306
+* Projeto: 3307
 
-Criar alias para facilitar:
+---
+
+# ⚡ Dica
+
+Criar alias:
 
 ```
 alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
 ```
-Agora você pode usar:
 
-```
-sail up -d
-sail artisan migrate
-```
+---
+
+# 🎯 Considerações finais
+
+Este projeto foi desenvolvido com foco em:
+
+* Arquitetura limpa
+* Boas práticas de API
+* Escalabilidade
+* Manutenibilidade
+
+---
+
+🔥 Projeto pronto para evolução e uso em produção.
