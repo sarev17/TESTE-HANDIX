@@ -2,48 +2,54 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Contact;
+use App\Http\Requests\ContactRequest;
+use App\Services\ContactService;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
 class ContactController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    use ApiResponse;
+
+    protected $service;
+
+    public function __construct(ContactService $service)
     {
-        //
+        $this->service = $service;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function index(Request $request)
     {
-        //
+        $contacts = $this->service->list($request->search);
+
+        return $this->success($contacts, 'Lista de contatos');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Contact $contact)
+    public function store(ContactRequest $request)
     {
-        //
+        $contact = $this->service->create($request->validated());
+
+        return $this->success($contact, 'Contato criado', 201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Contact $contact)
+    public function show($id)
     {
-        //
+        $contact = $this->service->find($id);
+
+        return $this->success($contact);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Contact $contact)
+    public function update(ContactRequest $request, $id)
     {
-        //
+        $contact = $this->service->update($id, $request->validated());
+
+        return $this->success($contact, 'Contato atualizado');
+    }
+
+    public function destroy($id)
+    {
+        $this->service->delete($id);
+
+        return $this->success([], 'Contato removido');
     }
 }
