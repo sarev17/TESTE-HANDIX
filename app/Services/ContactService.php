@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Contact;
 use App\Exceptions\ServiceException;
+use Illuminate\Support\Facades\Log;
 
 class ContactService
 {
@@ -19,7 +20,14 @@ class ContactService
 
             return $query->latest()->paginate(10);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+
+            Log::error('Erro ao listar contatos', [
+                'search' => $search,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             throw new ServiceException('Erro ao listar contatos');
         }
     }
@@ -29,7 +37,13 @@ class ContactService
         try {
             return Contact::create($data);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+
+            Log::error('Erro ao criar contato', [
+                'data' => $data,
+                'error' => $e->getMessage(),
+            ]);
+
             throw new ServiceException('Erro ao criar contato');
         }
     }
@@ -39,6 +53,11 @@ class ContactService
         $contact = Contact::find($id);
 
         if (!$contact) {
+
+            Log::warning('Contato não encontrado', [
+                'contact_id' => $id
+            ]);
+
             throw new ServiceException('Contato não encontrado', [], 404);
         }
 
@@ -55,7 +74,15 @@ class ContactService
 
         } catch (ServiceException $e) {
             throw $e;
-        } catch (\Exception $e) {
+
+        } catch (\Throwable $e) {
+
+            Log::error('Erro ao atualizar contato', [
+                'contact_id' => $id,
+                'data' => $data,
+                'error' => $e->getMessage(),
+            ]);
+
             throw new ServiceException('Erro ao atualizar contato');
         }
     }
@@ -70,7 +97,14 @@ class ContactService
 
         } catch (ServiceException $e) {
             throw $e;
-        } catch (\Exception $e) {
+
+        } catch (\Throwable $e) {
+
+            Log::error('Erro ao remover contato', [
+                'contact_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
             throw new ServiceException('Erro ao remover contato');
         }
     }
