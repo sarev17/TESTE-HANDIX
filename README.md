@@ -88,7 +88,7 @@ resources/js
 ### 1. Clonar projeto
 
 ```bash
-git clone <repo>
+git clone https://github.com/sarev17/TESTE-HANDIX.git
 cd teste-handix
 ```
 
