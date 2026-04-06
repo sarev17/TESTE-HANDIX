@@ -1,6 +1,7 @@
 import '../css/app.css';
 import './bootstrap';
 import { createApp } from 'vue';
+import { vMaska } from "maska/vue";
 import App from './App.vue';
 
 // Configuração do Toast
@@ -14,4 +15,5 @@ app.use(Toast, {
     closeOnClick: true,
     pauseOnHover: true,
 });
+app.directive("maska", vMaska);
 app.mount('#app');

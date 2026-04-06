@@ -2,35 +2,37 @@
 defineProps({
   contacts: Array,
   loading: Boolean,
-  modelValue: String // searchTerm
+  modelValue: String
 })
-
 defineEmits(['update:modelValue', 'edit', 'delete'])
 </script>
 
 <template>
   <div>
-    <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-      <h2 class="text-3xl font-extrabold bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent">Diretório Handix</h2>
+    <div class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div>
+        <h2 class="text-3xl font-extrabold bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent italic">Handix Network</h2>
+      </div>
       <div class="relative w-full md:w-96">
         <input 
           :value="modelValue"
           @input="$emit('update:modelValue', $event.target.value)"
           type="text" 
-          placeholder="🔍 Buscar por nome ou e-mail..."
+          placeholder="🔍 Filtrar registros..."
           class="w-full bg-[#111827] border border-white/10 rounded-2xl py-3.5 px-6 text-sm focus:border-blue-500 outline-none text-white transition-all shadow-inner"
         />
       </div>
     </div>
 
     <section class="bg-[#111827] border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto text-sm">
         <table class="w-full text-left">
           <thead class="text-gray-500 text-[10px] font-black uppercase tracking-widest bg-white/[0.02] border-b border-white/5">
             <tr>
-              <th class="p-6 text-white">Identificação</th>
-              <th class="p-6 text-white">Comunicação</th>
-              <th class="p-6 text-right text-white">Ações</th>
+              <th class="p-6">Identificação</th>
+              <th class="p-6">Comunicação</th>
+              <th class="p-6">Observações</th>
+              <th class="p-6 text-right">Ações</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/5">
@@ -44,8 +46,13 @@ defineEmits(['update:modelValue', 'edit', 'delete'])
                 </div>
               </td>
               <td class="p-6">
-                <div class="text-gray-400 text-sm font-medium">{{ c.email }}</div>
-                <div class="text-[11px] text-blue-500/60 font-mono mt-1">{{ c.phone }}</div>
+                <div class="text-gray-400 font-medium">{{ c.email }}</div>
+                <div class="text-[11px] text-blue-500/60 font-mono mt-0.5">{{ c.phone }}</div>
+              </td>
+              <td class="p-6">
+                <p class="text-gray-500 text-xs italic truncate max-w-[150px]" :title="c.notes">
+                  {{ c.notes || '---' }}
+                </p>
               </td>
               <td class="p-6 text-right space-x-2">
                 <button @click="$emit('edit', c)" class="bg-gray-800 hover:bg-blue-600 p-2.5 rounded-lg transition text-white">✏️</button>
