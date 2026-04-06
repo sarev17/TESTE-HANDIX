@@ -1,31 +1,38 @@
 # 🚀 Teste Handix
 
-Aplicação desenvolvida com **Laravel (API REST)** para o teste técnico da empresa Handix.
-
----
-# Requisitos
-
-* Laravel 13
-* PHP 8.4 
-* Docker
-* Vue.js
-
-# 🧱 Arquitetura e boas práticas aplicadas
-
-Este projeto foi desenvolvido seguindo princípios modernos de arquitetura e boas práticas:
-
-### ✅ Camadas da aplicação
-
-* **Controller** → camada fina (sem regra de negócio)
-* **Service Layer** → centraliza regras de negócio
-* **FormRequest** → validação desacoplada
-* **Resource (API Resource)** → controle de payload
-* **Exception Handling Global** → padronização de erros
-* **Logging estruturado** → observabilidade
+Aplicação desenvolvida com **Laravel (API REST)** + **Vue.js (SPA dentro do próprio Laravel)** para o teste técnico da Handix.
 
 ---
 
-# 📌 Principais funcionalidades implementadas
+# 📦 Stack utilizada
+
+- Laravel 13
+- PHP 8.4 (via Laravel Sail)
+- MySQL 8.4
+- Vue.js (dentro de `resources/js`)
+- Vite (build do frontend)
+- Docker (Laravel Sail)
+
+---
+
+# 🧱 Arquitetura
+
+O projeto segue boas práticas modernas:
+
+- **Controller** → camada fina
+- **Service Layer** → regras de negócio
+- **FormRequest** → validação desacoplada
+- **API Resource** → controle de resposta
+- **Exception Handling Global**
+- **Logging estruturado**
+
+✔️ Código escalável  
+✔️ Baixo acoplamento  
+✔️ Pronto para produção  
+
+---
+
+# 📌 Funcionalidades
 
 ## 🔹 API RESTful
 
@@ -41,315 +48,183 @@ CRUD completo de contatos:
 
 ---
 
-## 🔹 Service Layer (Camada de Serviço)
+## 🔹 Backend
 
-Toda regra de negócio foi isolada em serviços:
-
-* Criação
-* Atualização
-* Busca
-* Exclusão
-* Filtros
-
-✔️ Facilita testes
-✔️ Evita lógica no controller
-✔️ Código escalável
+- Validação robusta via FormRequest
+- Regras centralizadas no Service
+- Tratamento global de exceções
+- Paginação nativa
+- Logging estruturado
 
 ---
 
-## 🔹 FormRequest + Validação
+## 🔹 Frontend (Vue.js)
 
-Validação desacoplada usando **BaseFormRequest**:
+O frontend está **integrado dentro do Laravel**:
 
-* Regras dinâmicas por método (POST vs PUT/PATCH)
-* Validação parcial com `sometimes`
-* Mensagens personalizadas em português
 
-Exemplo:
+resources/js
 
-```
-PUT /api/v1/contacts/1
-{
-  "notes": "Atualizado"
-}
-```
 
-✔️ Suporta atualização parcial
-✔️ Retorna erros padronizados
+- SPA simples
+- Consome API via Axios
+- Build com Vite
+- Hot reload via porta 5173
 
 ---
 
-## 🔹 Padronização de respostas
-
-Todas as respostas seguem o padrão:
-
-### ✅ Sucesso
-
-```
-{
-  "success": true,
-  "message": "Mensagem",
-  "data": {}
-}
-```
-
-### ❌ Erro
-
-```
-{
-  "success": false,
-  "message": "Erro de validação",
-  "errors": {}
-}
-```
-
----
-
-## 🔹 API Resource (Controle de payload)
-
-Uso de **ContactResource** para evitar overfetching:
-
-✔️ Remove campos desnecessários
-✔️ Não expõe timestamps
-✔️ Controla exatamente o retorno
-
----
-
-## 🔹 Paginação
-
-A listagem de contatos retorna:
-
-* current_page
-* per_page
-* total
-* last_page
-* data
-
-✔️ Ideal para frontend
-
----
-
-## 🔹 Tratamento global de exceções
-
-Centralizado em:
-
-```
-bootstrap/app.php
-```
-
-* `ServiceException` → erros de negócio
-* `Throwable` → fallback global
-
-✔️ Evita try/catch nos controllers
-✔️ Mantém padrão consistente
-
----
-
-## 🔹 Logging estruturado
-
-Logs implementados no Service:
-
-* `error()` → falhas críticas
-* `warning()` → registros não encontrados
-
-Exemplo:
-
-```
-Log::error('Erro ao criar contato', [
-  'data' => $data,
-  'service' => ContactService::class
-]);
-```
-
-✔️ Facilita debug
-✔️ Pronto para produção
-
----
-
-## 🔹 Versionamento de API
-
-```
-/api/v1/contacts
-```
-
-✔️ Permite evolução futura
-
----
-
-## 🔹 Documentação automática
-
-Gerada com:
-
-* Scribe
-
-Disponível em:
-
-```
-http://localhost/docs
-```
-
-✔️ Teste de endpoints direto no browser
-
----
-
-# ⚙️ Como rodar o projeto localmente
+# ⚙️ Como rodar o projeto
 
 ## 📋 Pré-requisitos
 
-* Docker Desktop
-* WSL2 (Windows)
-* Ubuntu (via WSL)
-
-⚠️ Utilize o terminal do Ubuntu (WSL)
+- Docker Desktop
+- WSL2 (Windows)
+- Node.js (opcional, caso rode fora do container)
 
 ---
 
-## 🚀 Setup
+## 🚀 Setup completo (PASSO A PASSO)
 
-### 1. Acessar projeto
+### 1. Clonar projeto
 
+```bash
+git clone <repo>
+cd teste-handix
 ```
-cd /mnt/c/laragon/www/teste-handix
-```
-
----
 
 ### 2. Configurar ambiente
-
 ```
 cp .env.example .env
 ```
-
----
-
-### 3. Configurar banco
+### 3. Ajustar variáveis importantes
 
 ```
+APP_PORT=80
 DB_CONNECTION=mysql
 DB_HOST=mysql
-DB_PORT=3307
+DB_PORT=3306
 DB_DATABASE=laravel
 DB_USERNAME=sail
 DB_PASSWORD=password
 ```
 
----
+⚠️ Porta externa do MySQL está mapeada para 3307, mas internamente é 3306
 
-### 4. Subir containers
+### 4. Instalar dependências do Laravel
+```
+composer install
+```
 
+### 5. Subir containers (Laravel Sail)
 ```
 ./vendor/bin/sail up -d
 ```
 
----
-
-### 5. Gerar chave
-
+### 6. Gerar chave da aplicação
 ```
 ./vendor/bin/sail artisan key:generate
 ```
 
----
-
-### 6. Rodar migrations
-
+### 7. Rodar migrations
 ```
 ./vendor/bin/sail artisan migrate
 ```
 
----
+## ⚡ Frontend (Vue + Vite)
 
-### 7. Acessar
+O frontend roda dentro do mesmo projeto Laravel.
 
+▶️ Instalar dependências
+```
+./vendor/bin/sail npm install
+```
+
+▶️ Rodar ambiente de desenvolvimento (hot reload)
+```
+./vendor/bin/sail npm run dev
+```
+
+Acesse:
 ```
 http://localhost
 ```
 
----
-
-## ⚠️ Porta alternativa
-
-Se houver conflito:
-
+▶️ Build para produção
 ```
-APP_PORT=8080
+./vendor/bin/sail npm run build
 ```
 
-Depois:
+## 🔥 Portas utilizadas
+| Serviço    | Porta      |
+| ---------  | ---------- |
+| Laravel    | 80         |
+| Vite       | 5173       |
+| MySql      | 3307       |
 
-```
-./vendor/bin/sail down
-./vendor/bin/sail up -d
-```
 
----
-
-# 📦 Comandos úteis
-
-Subir:
-
+## 📦 Comandos úteis
+Subir containers
 ```
 ./vendor/bin/sail up -d
 ```
-
-Parar:
-
+Parar containers
 ```
 ./vendor/bin/sail down
 ```
-
-Ver containers:
-
+Acessar container
 ```
-./vendor/bin/sail ps
+./vendor/bin/sail shell
 ```
-
-Rodar comandos:
-
+Rodar artisan
 ```
 ./vendor/bin/sail artisan <comando>
 ```
 
----
-
-# 🧠 Observações
-
-### Docker + WSL
-
-Ativar em:
-
+Rodar npm
 ```
-Docker Desktop → Settings → Resources → WSL Integration
+./vendor/bin/sail npm run dev
 ```
 
----
+🧠 Observações importantes
 
-### Banco de dados
+🔹 Vue dentro do Laravel
+O frontend NÃO é separado
+Está dentro de resources/js
+Usa Vite integrado ao Laravel
+Compartilha o mesmo container
 
-* MySQL local: 3306
-* Projeto: 3307
+🔹 Docker + Sail
+Ambiente padronizado
+PHP 8.4 isolado
+MySQL já configurado
+Hot reload funcionando
 
----
+🔹 Banco de dados
 
-# ⚡ Dica
+Interno (container): mysql:3306
 
-Criar alias:
+Externo (host): localhost:3307
+⚡ Dica (alias)
 
+**Para facilitar comandos:**
 ```
 alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
 ```
 
----
+Depois disso:
+```
+sail up -d
+sail artisan migrate
+```
 
-# 🎯 Considerações finais
+## 🎯 Considerações finais
 
-Este projeto foi desenvolvido com foco em:
+Projeto desenvolvido com foco em:
 
-* Arquitetura limpa
-* Boas práticas de API
-* Escalabilidade
-* Manutenibilidade
+Arquitetura limpa
 
----
+Separação de responsabilidades
 
-🔥 Projeto pronto para evolução e uso em produção.
+Integração fullstack (Laravel + Vue)
+
+Execução simplificada com Docker
