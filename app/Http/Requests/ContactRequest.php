@@ -7,33 +7,39 @@ use Illuminate\Validation\Rule;
 class ContactRequest extends BaseFormRequest
 {
     public function rules(): array
-{
-    // Pega o parâmetro 'contact', que pode ser o ID ou o próprio objeto dependendo do Binding
-    $contact = $this->route('contact');
-    
-    // Se for um objeto (Route Model Binding), pega o ID, senão usa o valor direto
-    $id = is_object($contact) ? $contact->id : $contact;
+    {
+        // Pega o parâmetro 'contact', que pode ser o ID ou o próprio objeto dependendo do Binding
+        $contact = $this->route('contact');
 
-    if ($this->isMethod('post')) {
+        // Se for um objeto (Route Model Binding), pega o ID, senão usa o valor direto
+        $id = is_object($contact) ? $contact->id : $contact;
+
+        if ($this->isMethod('post')) {
+            return [
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:contacts,email',
+                'phone' => [
+                    'nullable',
+                    'regex:/^\(?[1-9]{2}\)?\s?9\d{4}-?\d{4}$/'
+                ],
+                'notes' => 'nullable|string',
+            ];
+        }
+
         return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:contacts,email',
-            'phone' => 'nullable|string|max:20',
+            'name' => 'sometimes|string|max:255',
+            'email' => [
+                'sometimes',
+                'email',
+                Rule::unique('contacts', 'email')->ignore($id),
+            ],
+            'phone' => [
+                'nullable',
+                'regex:/^\(?[1-9]{2}\)?\s?9\d{4}-?\d{4}$/'
+            ],
             'notes' => 'nullable|string',
         ];
     }
-
-    return [
-        'name' => 'sometimes|string|max:255',
-        'email' => [
-            'sometimes',
-            'email',
-            Rule::unique('contacts', 'email')->ignore($id),
-        ],
-        'phone' => 'nullable|string|max:20',
-        'notes' => 'nullable|string',
-    ];
-}
 
     public function messages(): array
     {
