@@ -2,6 +2,14 @@
 
 Aplicação desenvolvida com **Laravel (API REST)** + **Vue.js (SPA dentro do próprio Laravel)** para o teste técnico da Handix.
 
+<p align="center">
+  <img src="docs/demo.gif" alt="Demo do sistema" width="700"/>
+</p>
+
+<p align="center">
+  <em>Demonstração da aplicação rodando com Laravel + Vue + Sail</em>
+</p>
+
 ---
 
 # 📦 Stack utilizada
