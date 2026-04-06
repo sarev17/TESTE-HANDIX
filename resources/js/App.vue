@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useToast } from "vue-toastification"
 
@@ -9,38 +9,35 @@ const api = axios.create({ baseURL: '/api/v1' })
 const contacts = ref([])
 const loading = ref(false)
 const isModalOpen = ref(false)
+const searchTerm = ref('') // Estado para o filtro
+const form = ref({ id: null, name: '', email: '', phone: '', notes: '' })
 
-// O formulário começa limpo
-const form = ref({
-  id: null,
-  name: '',
-  email: '',
-  phone: '',
-  notes: ''
-})
-
-// Sincronização com a API: res.data (Axios) -> data (ApiResponse) -> data (Paginator)
+// Sincronização com a API enviando o parâmetro de busca
 const load = async () => {
   loading.value = true
   try {
-    const res = await api.get('/contacts')
+    const res = await api.get('/contacts', {
+      params: { search: searchTerm.value } // Enviando para o seu ContactService
+    })
     contacts.value = res.data.data.data 
   } catch (e) {
-    toast.error("Erro ao sincronizar com o diretório Handix.")
+    toast.error("Erro ao sincronizar dados.")
   } finally {
     loading.value = false
   }
 }
 
-// Abre o modal garantindo a limpeza ou o preenchimento do ID
+// Watcher com "debounce" para buscar enquanto o usuário digita
+let timeout = null
+watch(searchTerm, () => {
+  clearTimeout(timeout)
+  timeout = setTimeout(() => {
+    load()
+  }, 500) // Aguarda 500ms após a última tecla para disparar a busca
+})
+
 const openModal = (contact = null) => {
-  if (contact) {
-    // Modo Edição: Mapeia o objeto da lista para o form (incluindo o ID)
-    form.value = { ...contact }
-  } else {
-    // Modo Criação: Reseta todos os campos
-    form.value = { id: null, name: '', email: '', phone: '', notes: '' }
-  }
+  form.value = contact ? { ...contact } : { id: null, name: '', email: '', phone: '', notes: '' }
   isModalOpen.value = true
 }
 
@@ -52,23 +49,19 @@ const save = async () => {
   loading.value = true
   try {
     if (form.value.id) {
-      // Rota de Edição: PUT /api/v1/contacts/{id}
       await api.put(`/contacts/${form.value.id}`, form.value)
-      toast.success("Registo atualizado com sucesso!")
+      toast.success("Registro atualizado!")
     } else {
-      // Rota de Criação: POST /api/v1/contacts
       await api.post('/contacts', form.value)
-      toast.success("Novo contato registado na rede!")
+      toast.success("Contato salvo!")
     }
     closeModal()
     load()
   } catch (e) {
-    // Tratamento de erros de validação (ex: e-mail já em uso)
     if (e.response?.status === 422) {
-      const apiErrors = e.response.data.errors
-      Object.values(apiErrors).flat().forEach(msg => toast.error(msg))
+      Object.values(e.response.data.errors).flat().forEach(msg => toast.error(msg))
     } else {
-      toast.error("Falha na comunicação com o servidor.")
+      toast.error("Falha na operação.")
     }
   } finally {
     loading.value = false
@@ -76,13 +69,13 @@ const save = async () => {
 }
 
 const remove = async (id) => {
-  if (!confirm('Deseja remover este registo permanentemente?')) return
+  if (!confirm('Deseja excluir este registro?')) return
   try {
     await api.delete(`/contacts/${id}`)
-    toast.info("Registo removido do sistema.")
+    toast.info("Removido.")
     load()
   } catch (e) {
-    toast.error("Erro ao processar a exclusão.")
+    toast.error("Erro ao excluir.")
   }
 }
 
@@ -91,6 +84,7 @@ onMounted(load)
 
 <template>
   <div class="min-h-screen bg-[#0a0f18] text-white font-sans selection:bg-blue-500/30">
+    
     <nav class="border-b border-white/10 bg-[#0a0f18]/80 backdrop-blur-md sticky top-0 z-40">
       <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
         <div class="flex items-center gap-2">
@@ -108,13 +102,28 @@ onMounted(load)
     </nav>
 
     <main class="max-w-5xl mx-auto py-12 px-6">
-      <header class="mb-16">
-        <h2 class="text-4xl font-extrabold mb-2 bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent">Diretório Profissional</h2>
-        <p class="text-gray-500 text-[10px] font-black uppercase tracking-[0.3em]">Gestão de Infraestrutura de Dados</p>
-      </header>
+      
+      <div class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h2 class="text-3xl font-extrabold bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent">Diretório de Rede</h2>
+          <p class="text-gray-500 text-[10px] font-black uppercase tracking-[0.3em]">Gestão de Infraestrutura</p>
+        </div>
+        
+        <div class="relative w-full md:w-96 group">
+          <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <span class="text-gray-500 group-focus-within:text-blue-500 transition-colors">🔍</span>
+          </div>
+          <input 
+            v-model="searchTerm"
+            type="text" 
+            placeholder="Filtrar por nome ou e-mail..."
+            class="w-full bg-[#111827] border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+          />
+        </div>
+      </div>
 
       <section class="bg-[#111827] border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto text-sm">
           <table class="w-full text-left">
             <thead class="text-gray-500 text-[10px] font-black uppercase tracking-widest bg-white/[0.02] border-b border-white/5">
               <tr>
@@ -134,8 +143,8 @@ onMounted(load)
                   </div>
                 </td>
                 <td class="p-6">
-                  <div class="text-gray-400 text-sm font-medium">{{ c.email }}</div>
-                  <div class="text-[11px] text-blue-500/60 font-mono mt-1">{{ c.phone }}</div>
+                  <div class="text-gray-400 font-medium">{{ c.email }}</div>
+                  <div class="text-[11px] text-blue-500/60 font-mono mt-0.5">{{ c.phone }}</div>
                 </td>
                 <td class="p-6 text-right space-x-2">
                   <button @click="openModal(c)" class="bg-gray-800 hover:bg-blue-600 p-2.5 rounded-lg transition" title="Editar">✏️</button>
@@ -145,8 +154,12 @@ onMounted(load)
             </tbody>
           </table>
         </div>
-        <div v-if="!loading && contacts.length === 0" class="p-20 text-center text-gray-600 italic">
-           Nenhum dado processado no momento.
+        
+        <div v-if="loading" class="p-10 text-center text-blue-500 animate-pulse font-black text-xs tracking-widest">
+          SINCRONIZANDO DADOS...
+        </div>
+        <div v-else-if="contacts.length === 0" class="p-20 text-center text-gray-600 italic">
+          Nenhum registro encontrado para esta busca.
         </div>
       </section>
     </main>
@@ -156,27 +169,20 @@ onMounted(load)
         <div class="bg-[#111827] border border-white/10 w-full max-w-xl rounded-3xl shadow-2xl relative overflow-hidden">
           <div class="p-8 relative z-10">
             <h3 class="text-xl font-black uppercase tracking-tighter mb-8">
-              {{ form.id ? 'Sincronizar' : 'Novo' }} <span class="text-blue-500">Registo</span>
+              {{ form.id ? 'Sincronizar' : 'Novo' }} <span class="text-blue-500">Registro</span>
             </h3>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div v-for="field in ['name', 'email', 'phone', 'notes']" :key="field" class="flex flex-col gap-2">
-                <label class="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">
-                  {{ field === 'phone' ? 'Telefone' : field }}
-                </label>
-                <input 
-                  v-model="form[field]" 
-                  :type="field === 'email' ? 'email' : 'text'" 
-                  class="bg-[#0a0f18] border border-white/10 rounded-xl p-4 focus:border-blue-500 outline-none transition-all text-sm text-gray-200" 
-                />
+                <label class="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">{{ field }}</label>
+                <input v-model="form[field]" class="bg-[#0a0f18] border border-white/10 rounded-xl p-4 focus:border-blue-500 outline-none text-sm" />
               </div>
             </div>
 
             <div class="mt-10 flex justify-end gap-4 border-t border-white/5 pt-6">
               <button @click="closeModal" class="text-gray-500 font-bold hover:text-white transition">Cancelar</button>
-              <button @click="save" :disabled="loading" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-3.5 rounded-xl font-black uppercase tracking-tighter transition-all flex items-center gap-2">
-                <span v-if="loading" class="animate-spin text-xs">🌀</span>
-                {{ form.id ? 'Salvar Alterações' : 'Concluir Registo' }}
+              <button @click="save" :disabled="loading" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-3.5 rounded-xl font-black uppercase tracking-tighter transition-all">
+                {{ form.id ? 'Salvar Alterações' : 'Finalizar Registro' }}
               </button>
             </div>
           </div>
