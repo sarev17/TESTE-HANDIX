@@ -41,22 +41,29 @@ const openModal = (contact = null) => {
 }
 
 const save = async () => {
+  if (loading.value) return // Evita cliques duplos acidentais
+  
   loading.value = true
   try {
     if (form.value.id) {
       await api.put(`/contacts/${form.value.id}`, form.value)
-      toast.success("Registro sincronizado!")
+      toast.success("Dados sincronizados com sucesso!")
     } else {
       await api.post('/contacts', form.value)
-      toast.success("Contato registrado!")
+      toast.success("Contato adicionado à rede!")
     }
     isModalOpen.value = false
-    load()
+    await load() 
   } catch (e) {
     if (e.response?.status === 422) {
       Object.values(e.response.data.errors).flat().forEach(msg => toast.error(msg))
-    } else { toast.error("Falha na operação.") }
-  } finally { loading.value = false }
+    } else {
+      toast.error("Erro na infraestrutura de rede.")
+    }
+  } finally {
+    // O loading volta para false aqui, liberando o botão
+    loading.value = false 
+  }
 }
 
 const remove = async (id) => {
