@@ -85,10 +85,13 @@ resources/js
 
 ## 🚀 Setup completo (PASSO A PASSO)
 
+Antes de qualquer coisa, o sail não executa corretamente em ambiente Linux, é recomendavel usar Ubuntu(WSL) para executar os comandos sail.
+ao entrar no terminal Ubuntu navege até sua pasta. Ex: **cd /mnt/c/laragon/www/teste-handix**
+
 ### 1. Clonar projeto
 
 ```bash
-git clone <repo>
+git clone https://github.com/sarev17/TESTE-HANDIX.git
 cd teste-handix
 ```
 
